@@ -19,7 +19,7 @@ class NaiveAgent():
 
 
 game = Snake(width=640, height=640)
-p = PLE(game, fps=30, display_screen=False)
+p = PLE(game, fps=30, display_screen=True)
 agent = NaiveAgent(p.getActionSet())
 
 p.init()
@@ -37,6 +37,10 @@ food_y = []
 learning_sample = pd.DataFrame()
 
 for i in range(learning_time):
+
+	if i % 100 == 0:
+		print(i/learning_time)
+
 	if p.game_over():
 		p.reset_game()
 
