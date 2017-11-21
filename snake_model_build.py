@@ -7,19 +7,22 @@ import pandas as pd
 dataset = pd.read_csv("learning_sample.csv")
 print(dataset)
 # split into input (X) and output (Y) variables
-X = dataset[["snake_head_x","snake_head_y","food_x","food_y","action"]].values
+
+cols = ["snake_head_x","snake_head_y","food_x","food_y","action1","action2","action3","action4","action5"]
+
+X = dataset[cols].values
 Y = dataset["reward"]
 
-print(X)
+print(Y)
 
 model = Sequential()
 # 12 neurons, 8 input vars
-model.add(Dense(5, input_dim=5, activation='relu'))
+model.add(Dense(len(cols), input_dim=len(cols), activation='relu'))
 model.add(Dense(8, activation='relu'))
-model.add(Dense(1, activation='sigmoid'))
+model.add(Dense(1, activation='linear'))
 
 # Compile model
-model.compile(loss='binary_crossentropy', optimizer='adam', metrics=['accuracy'])
+model.compile(loss='mean_squared_error', optimizer='adam', metrics=['accuracy'])
 
 # Fit the model
 model.fit(X, Y, epochs=10, batch_size=10)
@@ -27,3 +30,11 @@ model.fit(X, Y, epochs=10, batch_size=10)
 # evaluate the model
 scores = model.evaluate(X, Y)
 print("\n%s: %.2f%%" % (model.metrics_names[1], scores[1]*100))
+
+# serialize model to JSON
+model_json = model.to_json()
+with open("model.json", "w") as json_file:
+    json_file.write(model_json)
+
+model.save_weights("model.h5")
+print("Saved model to disk")
