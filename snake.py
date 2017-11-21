@@ -44,7 +44,7 @@ class NaiveAgent():
 		
 		best_act = predictions.index(max(predictions))
 		
-		print(best_act)
+		#print(best_act)
 
 		#do = self.actions[best_act]
 		do = self.actions[np.random.randint(0, len(self.actions))]
