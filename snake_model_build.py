@@ -17,15 +17,16 @@ print(Y)
 
 model = Sequential()
 # 12 neurons, 8 input vars
-model.add(Dense(len(cols), input_dim=len(cols), activation='relu'))
-model.add(Dense(8, activation='relu'))
-model.add(Dense(1, activation='linear'))
+model.add(Dense(len(cols), input_dim=len(cols), activation='linear'))
+model.add(Dense(8, activation='linear'))
+model.add(Dense(1, activation='relu'))
+
 
 # Compile model
 model.compile(loss='mean_squared_error', optimizer='adam', metrics=['accuracy'])
 
 # Fit the model
-model.fit(X, Y, epochs=10, batch_size=10)
+model.fit(X, Y, epochs=5, batch_size=10)
 
 # evaluate the model
 scores = model.evaluate(X, Y)
