@@ -10,8 +10,9 @@ from keras.models import Sequential
 from keras.layers import Dense
 from keras.optimizers import Adam
 
-# def predict_reward(snake_head_x,snake_head_y,food_x,food_y,action1,action2,action3,action4,action5):
-#	return loaded_model.predict(np.array([[snake_head_x,snake_head_y,food_x,food_y,action1,action2,action3,action4,action5]]))[0]
+
+def dict_to_list(dictObj):
+    return np.array([int(dictObj['snake_head_x']), int(dictObj['snake_head_x']), int(dictObj['food_x']), int(dictObj['food_y'])])
 
 
 class NaiveAgent():
@@ -33,7 +34,7 @@ class NaiveAgent():
     def _build_model(self):
 
         model = Sequential()
-        model.add(Dense(24, input_dim=10, activation='relu'))
+        model.add(Dense(24, input_dim=4, activation='relu'))
         model.add(Dense(24, activation='relu'))
         model.add(Dense(self.action_size, activation='linear'))
         model.compile(loss='mse', optimizer=Adam(lr=self.learning_rate))
@@ -41,19 +42,22 @@ class NaiveAgent():
 
     def pickAction(self, reward, obs, state):
 
+        state = dict_to_list(state)
+
         if np.random.rand() <= self.epsilon:
             return self.actions[np.random.randint(0, len(self.actions))]
 
-        act_values = self.model.predict(state)
+        act_values = self.model.predict(np.array([state]))
+
         print(act_values)
-        return np.argmax(act_values[0])
+
+        return self.actions[np.argmax(act_values[0])]
 
     def remember(self, state, action, reward, next_state, done):
-        self.memory.append((state, action, reward, next_state, done))
+        self.memory.append((dict_to_list(state), action,
+                            reward, dict_to_list(next_state), done))
 
     def replay(self, batch_size):
-
-        print("replay")
 
         minibatch = random.sample(self.memory, batch_size)
 
@@ -61,23 +65,26 @@ class NaiveAgent():
             target = reward
             if not done:
                 target = reward + self.gamma * \
-                    np.amax(self.model.predict(next_state)[0])
-            target_f = self.model.predict(state)
-            target_f[0][action] = target
-            print("fit")
-            self.model.fit(state, target_f, epochs=1, verbose=0)
+                    np.amax(self.model.predict(np.array([next_state]))[0])
+            target_f = self.model.predict(np.array([state]))
+
+            target_f[0][self.actions.index(action)] = target
+
+            self.model.fit(np.array([state]), np.array(
+                target_f), epochs=1, verbose=0)
+
         if self.epsilon > self.epsilon_min:
             self.epsilon *= self.epsilon_decay
 
 
-game = Snake(width=640, height=640)
+game = Snake(width=320, height=320)
 p = PLE(game, fps=30, display_screen=True)
 agent = NaiveAgent(p.getActionSet())
 
 p.init()
 reward = 0.0
 
-learning_time = 1000
+learning_time = 100000
 
 actions = []
 rewards = []
@@ -90,6 +97,9 @@ learning_sample = pd.DataFrame()
 
 observation = p.getScreenRGB()
 state = p.game.getGameState()
+
+del state['snake_body']
+del state['snake_body_pos']
 
 for i in range(learning_time):
 
@@ -108,8 +118,11 @@ for i in range(learning_time):
 
     state = next_state
 
+    del state['snake_body']
+    del state['snake_body_pos']
+
     if done:
-        agent.replay(32)
+        agent.replay(100)
 
     # {'snake_head_x': 339.20000000000005, 'snake_head_y': 387.20000000000016, 'food_x': 116, 'food_y': 522, 'snake_body': [0.0, 10.57110258089134, 19.5944140688368], 'snake_body_pos': [[339.20000000000005, 387.20000000000016], [339.10400000009594, 376.6293333334296], [337.37600000958639, 367.69066667628044]]}
 
