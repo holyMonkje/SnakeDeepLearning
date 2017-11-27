@@ -101,7 +101,7 @@ state = p.game.getGameState()
 del state['snake_body']
 del state['snake_body_pos']
 
-for i in range(learning_time):
+while True:
 
     if p.game_over():
         p.reset_game()
